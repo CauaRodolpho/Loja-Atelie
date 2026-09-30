@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 import { Link, useSearchParams } from 'react-router-dom';
 import { ShoppingBag, Star, Sparkles, Filter } from 'lucide-react';
 import { PRODUCTS, CATEGORY_ICONS } from '../data/products';
