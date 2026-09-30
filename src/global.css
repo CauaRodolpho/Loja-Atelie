@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@theme {
+  --font-handwritten: "Caveat", cursive;
+  --font-sans: "Nunito", sans-serif;
+  --color-brand-light: #fff0f3; /* O seu fundo rosa suave */
+  --color-brand-dark: #2d262b; /* Um tom de texto escuro elegante */
+  --color-brand-hover: #FF6987; /* O rosa forte para os links ao passar o mouse */
+  --color-brand-background: #FFF5F6; /* Um fundo rosa muito suave para seções */
+}
