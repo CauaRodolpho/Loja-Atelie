@@ -12,6 +12,7 @@ import { FavoritesProvider } from "./context/FavoritesContext";
 import { FavoritesDrawer } from "./components/FavoritesDrawer"; 
 import { CheckoutPage } from "./pages/CheckoutPage";
 import { OrderSuccessPage } from "./pages/OrderSuccessPage";
+import { AboutPage } from "./pages/AboutPage";
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="/produto/:productId" element={<ProductDetailPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/pedido-confirmado" element={<OrderSuccessPage />} />
+            <Route path="/sobre" element={<AboutPage />} />
           </Routes>
 
           <Footer />
