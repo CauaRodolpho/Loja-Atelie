@@ -274,7 +274,7 @@ export const OrderSuccessPage = () => {
           <div className="pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <a
-                href="https://github.com"
+                href="https://github.com/CauaRodolpho"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-xs font-bold text-slate-200 hover:text-white transition-all bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl border border-slate-700 shadow-sm"
@@ -283,7 +283,7 @@ export const OrderSuccessPage = () => {
                 <span>Ver Código no GitHub</span>
               </a>
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/in/cau%C3%A3-rodolpho/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-xs font-bold text-slate-200 hover:text-white transition-all bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl border border-slate-700 shadow-sm"
