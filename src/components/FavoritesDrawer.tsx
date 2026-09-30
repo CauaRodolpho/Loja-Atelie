@@ -1,4 +1,4 @@
-import { Heart, X, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
+import { Heart, X, Trash2, ArrowRight } from "lucide-react";
 import { useFavorites } from "../context/FavoritesContext";
 import { useNavigate } from "react-router-dom";
 
@@ -10,7 +10,6 @@ export const FavoritesDrawer = () => {
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Overlay escuro */}
       <div 
         onClick={closeFavorites}
         className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
@@ -57,7 +56,7 @@ export const FavoritesDrawer = () => {
             ) : (
               favorites.map((product) => (
                 <div
-                  key={product.productId || product.id}
+                  key={product.productId}
                   className="flex gap-4 p-3 bg-pink-50/30 rounded-2xl border border-pink-100/60 relative group items-center"
                 >
                   <img
@@ -77,7 +76,7 @@ export const FavoritesDrawer = () => {
                     <button
                       onClick={() => {
                         closeFavorites();
-                        navigate(`/produto/${product.productId || product.id}`);
+                        navigate(`/produto/${product.productId}`);
                       }}
                       className="text-[11px] font-semibold text-gray-600 hover:text-[#FF6987] flex items-center gap-1 mt-1 transition-colors cursor-pointer"
                     >

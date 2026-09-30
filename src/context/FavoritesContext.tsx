@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import type { Product } from "../types";
 
 interface FavoritesContextData {
@@ -29,17 +29,14 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
   const closeFavorites = () => setIsFavoritesOpen(false);
 
   const isFavorite = (productId: string) => {
-    return favorites.some(
-      (p) => String(p.productId || p.id) === String(productId)
-    );
+    return favorites.some((p) => String(p.productId) === String(productId));
   };
 
   const toggleFavorite = (product: Product) => {
-    const pId = product.productId || product.id;
     setFavorites((prev) => {
-      const exists = prev.some((p) => String(p.productId || p.id) === String(pId));
+      const exists = prev.some((p) => String(p.productId) === String(product.productId));
       if (exists) {
-        return prev.filter((p) => String(p.productId || p.id) !== String(pId));
+        return prev.filter((p) => String(p.productId) !== String(product.productId));
       }
       return [...prev, product];
     });

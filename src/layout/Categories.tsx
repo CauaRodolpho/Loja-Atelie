@@ -1,13 +1,8 @@
 import {
   ArrowRight,
   Sparkles,
-  Heart,
-  Gift,
-  BookOpen,
-  Coffee,
-  Smile,
 } from "lucide-react";
-import { FeaturedProducts } from "./FeaturedProducts";
+
 import acessorios from "../assets/icons/acessorios.png";
 import papelaria from "../assets/icons/papelaria.png";
 import decoracao from "../assets/icons/decoracao.png";

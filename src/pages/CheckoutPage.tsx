@@ -4,13 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   ShoppingBag,
   ArrowLeft,
-  CheckCircle,
-  AlertTriangle,
   Info,
   MapPin,
   User,
-  Phone,
-  MessageCircle,
+ 
 } from "lucide-react";
 
 export const CheckoutPage = () => {
