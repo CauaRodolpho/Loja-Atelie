@@ -27,7 +27,7 @@ export const ProductDetailPage = () => {
 
   const [quantity, setQuantity] = useState<number>(product?.minQuantity || 1);
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
-  const [isAdded, setIsAdded] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);\n  const [customizationError, setCustomizationError] = useState("");
 
   if (!product) {
     return (
@@ -49,7 +49,7 @@ export const ProductDetailPage = () => {
   }
 
   const handleCustomChange = (optionId: string, value: string) => {
-    setCustomValues((prev) => ({ ...prev, [optionId]: value }));
+    setCustomValues((prev) => ({ ...prev, [optionId]: value }));\n    setCustomizationError("");
   };
 
   const handleAddToCart = () => {
@@ -196,7 +196,7 @@ export const ProductDetailPage = () => {
             )}
 
             {/* Seletor Qtd e Botão Adicionar */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
+            {customizationError && (\n              <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">\n                {customizationError}\n              </p>\n            )}\n\n            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
               <div className="flex items-center justify-between border border-pink-200 rounded-full bg-white px-4 py-2 shrink-0">
                 <button
                   onClick={() =>
