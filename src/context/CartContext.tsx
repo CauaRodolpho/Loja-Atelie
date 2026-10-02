@@ -1,35 +1,45 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { PRODUCTS } from "../data/products";
+import { CartContext } from "../hooks/useCart";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import type { Product, CartItem } from "../types";
 
-interface CartContextData {
-  cart: CartItem[];
-  isCartOpen: boolean;
-  openCart: () => void;
-  closeCart: () => void;
-  addToCart: (product: Product, quantity: number, customValues?: Record<string, string>, photoUrl?: string) => void;
-  removeFromCart: (index: number) => void;
-  updateQuantity: (index: number, newQuantity: number) => void;
-  clearCart: () => void;
-  totalItems: number;
-  subtotal: number;
-}
-
-const CartContext = createContext<CartContextData>({} as CartContextData);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>(() => {
-    const savedCart = localStorage.getItem("anacraft_cart");
-    return savedCart ? JSON.parse(savedCart) : [];
+    try {
+      const saved = localStorage.getItem("anacraft_cart");
+      const parsed: unknown = saved ? JSON.parse(saved) : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed.flatMap((item): CartItem[] => {
+        if (!item || typeof item !== "object") return [];
+        const product = PRODUCTS.find(product => product.productId === item.product?.productId);
+        if (!product || !Number.isSafeInteger(item.quantity) || item.quantity < 1) return [];
+        const values = item.customValues;
+        if (!values || typeof values !== "object" || Array.isArray(values)) return [];
+        const customValues: Record<string, string> = {};
+        for (const option of product.customizationOptions) {
+          const value = values[option.id];
+          if (value !== undefined && typeof value !== "string") return [];
+          if (option.required && !value?.trim()) return [];
+          if (value && option.type === "select" && !option.options?.includes(value)) return [];
+          if (typeof value === "string") customValues[option.id] = value;
+        }
+        const quantity = Math.max(product.minQuantity || 1, item.quantity);
+        const totalPrice = product.price * quantity;
+        if (!Number.isFinite(totalPrice)) return [];
+        return [{ product, quantity, customValues, photoUrl: typeof item.photoUrl === "string" ? item.photoUrl : "", totalPrice }];
+      });
+    } catch { return []; }
   });
 
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("anacraft_cart", JSON.stringify(cart));
+    try { localStorage.setItem("anacraft_cart", JSON.stringify(cart)); } catch { /* O estado permanece disponível durante a sessão. */ }
   }, [cart]);
 
   const openCart = () => setIsCartOpen(true);
-  const closeCart = () => setIsCartOpen(false);
+  const closeCart = useCallback(() => setIsCartOpen(false), []);
 
   const addToCart = (
     product: Product,
@@ -37,6 +47,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     customValues: Record<string, string> = {},
     photoUrl: string = ""
   ) => {
+    quantity = Math.max(product.minQuantity || 1, Math.floor(quantity));
     const totalPrice = product.price * quantity;
 
     setCart((prevCart) => {
@@ -44,7 +55,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const existingIndex = prevCart.findIndex(
         (item) =>
           item.product.productId === product.productId &&
-          JSON.stringify(item.customValues) === JSON.stringify(customValues)
+          JSON.stringify(Object.entries(item.customValues).sort()) === JSON.stringify(Object.entries(customValues).sort()) &&
+          item.photoUrl === photoUrl
       );
 
       if (existingIndex > -1) {
@@ -78,18 +90,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateQuantity = (index: number, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeFromCart(index);
-      return;
-    }
+    if (!Number.isFinite(newQuantity)) return;
 
     setCart((prevCart) =>
       prevCart.map((item, i) =>
         i === index
           ? {
               ...item,
-              quantity: newQuantity,
-              totalPrice: item.product.price * newQuantity,
+              quantity: Math.max(item.product.minQuantity || 1, Math.floor(newQuantity)),
+              totalPrice: item.product.price * Math.max(item.product.minQuantity || 1, Math.floor(newQuantity)),
             }
           : item
       )
@@ -120,5 +129,3 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     </CartContext.Provider>
   );
 };
-
-export const useCart = () => useContext(CartContext);

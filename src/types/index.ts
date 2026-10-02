@@ -13,6 +13,7 @@ interface Product {
   price: number;
   category: string;
   imageUrl: string;
+  imageUrlSmall?: string;
   minQuantity: number;
   productionsDays: number;
   customizationOptions: CustomizationOption[];
@@ -48,3 +49,21 @@ interface HeroSlide {
 
 
 export type { Product, CustomizationOption, CartItem, HeroSlide, };
+
+export interface OrderDetails {
+  orderNumber: string;
+  cart: CartItem[];
+  subtotal: number;
+  deliveryMethod: 'delivery' | 'pickup';
+  formData: {
+    name: string;
+    phone: string;
+    cep: string;
+    address: string;
+    number: string;
+    complement: string;
+    neighborhood: string;
+    city: string;
+    observations: string;
+  };
+}

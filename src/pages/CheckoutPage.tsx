@@ -1,381 +1,69 @@
-import { useState } from "react";
-import { useCart } from "../context/CartContext";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  ShoppingBag,
-  ArrowLeft,
-  Info,
-  MapPin,
-  User,
- 
-} from "lucide-react";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Info, ShoppingBag } from 'lucide-react';
+import { useCart } from '../hooks/useCart';
+import { formatPrice } from '../utils/format';
+import type { OrderDetails } from '../types';
 
-export const CheckoutPage = () => {
+type CustomerData = OrderDetails['formData'];
+const initialData: CustomerData = { name: '', phone: '', cep: '', address: '', number: '', complement: '', neighborhood: '', city: '', observations: '' };
+const addressFields: { key: keyof CustomerData; label: string; placeholder: string; autoComplete: string; required: boolean }[] = [
+  { key: 'cep', label: 'CEP', placeholder: '00000-000', autoComplete: 'postal-code', required: true },
+  { key: 'address', label: 'Rua / logradouro', placeholder: 'Rua das Flores', autoComplete: 'address-line1', required: true },
+  { key: 'number', label: 'Número', placeholder: '123 ou S/N', autoComplete: 'off', required: true },
+  { key: 'complement', label: 'Complemento', placeholder: 'Apartamento, bloco...', autoComplete: 'address-line2', required: false },
+  { key: 'neighborhood', label: 'Bairro', placeholder: 'Seu bairro', autoComplete: 'off', required: true },
+  { key: 'city', label: 'Cidade / UF', placeholder: 'São Paulo / SP', autoComplete: 'address-level2', required: true },
+];
+
+export function CheckoutPage() {
   const { cart, subtotal, clearCart } = useCart();
   const navigate = useNavigate();
-
-  // Estados do Formulário de Checkout
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    cep: "",
-    address: "",
-    number: "",
-    complement: "",
-    neighborhood: "",
-    city: "",
-    observations: "",
-  });
-
-  const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">(
-    "delivery",
-  );
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFinishOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (cart.length === 0) return;
-
-    // Prepara os dados do pedido para exibir na tela de sucesso/README
-    const orderDetails = {
-      cart: [...cart],
-      subtotal,
-      formData,
-      deliveryMethod,
-    };
-
-    // Limpa o carrinho
+  const [formData, setFormData] = useState(initialData);
+  const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
+  const [error, setError] = useState('');
+  const update = (key: keyof CustomerData, value: string) => { setFormData(previous => ({ ...previous, [key]: value })); setError(''); };
+  const finish = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!cart.length) return;
+    const mandatory: (keyof CustomerData)[] = deliveryMethod === 'delivery' ? ['name', 'phone', 'cep', 'address', 'number', 'neighborhood', 'city'] : ['name', 'phone'];
+    const missing = mandatory.find(key => !formData[key].trim());
+    if (missing) { setError('Preencha os campos obrigatórios antes de confirmar.'); document.getElementById(`checkout-${missing}`)?.focus(); return; }
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    if (!/^[0-9()+ .-]+$/.test(formData.phone) || phoneDigits.length < 10 || phoneDigits.length > 13) {
+      setError('Informe um telefone válido com DDD.');
+      document.getElementById('checkout-phone')?.focus();
+      return;
+    }
+    const order: OrderDetails = { cart: [...cart], subtotal, formData, deliveryMethod, orderNumber: `AC-${(crypto.randomUUID?.() ?? `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`).slice(0, 8).toUpperCase()}` };
     clearCart();
-
-    // Redireciona para a página /pedido-confirmado enviando os dados
-    navigate("/pedido-confirmado", { state: orderDetails });
+    navigate('/pedido-confirmado', { state: order });
   };
-
-  if (cart.length === 0) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4 py-16">
-        <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center text-[#FF6987] mb-4">
-          <ShoppingBag className="w-10 h-10" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-800">
-          Seu carrinho está vazio
-        </h2>
-        <p className="text-gray-500 text-sm max-w-md mt-2">
-          Adicione alguns produtos ao seu carrinho antes de prosseguir para o
-          checkout.
-        </p>
-        <Link
-          to="/catalogo"
-          className="mt-6 bg-[#FF6987] hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-md transition-all text-sm"
-        >
-          Explorar Produtos
-        </Link>
+  if (!cart.length) return <section className="page-container flex min-h-[60vh] flex-col items-center justify-center gap-4 py-12 text-center"><ShoppingBag className="h-12 w-12 text-[#b93857]" /><h1 className="text-2xl font-bold">Seu carrinho está vazio</h1><p className="text-gray-600">Escolha seus produtos antes de finalizar o pedido.</p><Link to="/catalogo" className="rounded-full bg-[#b93857] px-6 py-3 font-bold text-white">Explorar produtos</Link></section>;
+  return <section className="page-container py-8 sm:py-12">
+    <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900"><Info className="mt-0.5 h-5 w-5 shrink-0" /><p><strong>Compra de demonstração.</strong> Você pode usar dados fictícios. Nenhuma cobrança ou encomenda real será realizada.</p></div>
+    <Link to="/catalogo" className="mb-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-gray-600"><ArrowLeft className="h-4 w-4" /> Voltar à loja</Link>
+    <h1 className="mb-6 text-2xl font-extrabold sm:text-3xl">Finalizar pedido</h1>
+    <form onSubmit={finish} className="grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-12">
+      <div className="flex min-w-0 flex-col gap-6 lg:col-span-7">
+        <section className="checkout-card"><h2 className="mb-5 text-lg font-bold">Seus dados</h2><div className="grid gap-4">
+          <div><label htmlFor="checkout-name" className="field-label">Nome completo *</label><input id="checkout-name" name="name" autoComplete="name" required minLength={2} maxLength={100} value={formData.name} onChange={event => update('name', event.target.value)} placeholder="Seu nome completo" className="field-input" /></div>
+          <div><label htmlFor="checkout-phone" className="field-label">WhatsApp / celular *</label><input id="checkout-phone" name="phone" type="tel" autoComplete="tel" required minLength={10} maxLength={20} title="Informe o telefone com DDD, por exemplo (11) 99999-9999." value={formData.phone} onChange={event => update('phone', event.target.value)} placeholder="(11) 99999-9999" className="field-input" /><p className="mt-1 text-sm text-gray-500">Inclua o DDD.</p></div>
+        </div></section>
+        <section className="checkout-card"><h2 className="mb-5 text-lg font-bold">Entrega</h2>
+          <fieldset><legend className="sr-only">Como deseja receber o pedido?</legend><div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">{[{ value: 'delivery', label: 'Receber no endereço' }, { value: 'pickup', label: 'Retirar no ateliê' }].map(method => <label key={method.value} className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border p-3 text-sm font-semibold ${deliveryMethod === method.value ? 'border-[#b93857] bg-pink-50 text-[#b93857]' : 'border-pink-100 text-gray-700'}`}><input type="radio" name="deliveryMethod" value={method.value} checked={deliveryMethod === method.value} onChange={() => setDeliveryMethod(method.value as 'delivery' | 'pickup')} className="h-4 w-4 accent-[#b93857]" />{method.label}</label>)}</div></fieldset>
+          {deliveryMethod === 'delivery' ? <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">{addressFields.map(field => <div key={field.key} className={field.key === 'address' ? 'sm:col-span-2' : ''}><label htmlFor={`checkout-${field.key}`} className="field-label">{field.label}{field.required ? ' *' : ''}</label><input id={`checkout-${field.key}`} name={field.key} autoComplete={field.autoComplete} required={field.required} maxLength={150} inputMode={field.key === 'cep' ? 'numeric' : undefined} pattern={field.key === 'cep' ? '[0-9]{5}-?[0-9]{3}' : undefined} title={field.key === 'cep' ? 'Informe um CEP com 8 números.' : undefined} placeholder={field.placeholder} value={formData[field.key]} onChange={event => update(field.key, event.target.value)} className="field-input" /></div>)}</div> : <p className="mt-4 text-sm leading-relaxed text-gray-600">O local e o horário de retirada devem ser combinados com o ateliê. Neste projeto, a retirada é apenas simulada.</p>}
+          <div className="mt-5"><label htmlFor="checkout-observations" className="field-label">Observações do pedido</label><textarea id="checkout-observations" name="observations" rows={3} maxLength={1000} value={formData.observations} onChange={event => update('observations', event.target.value)} placeholder="Algum detalhe que devemos saber?" className="field-input resize-y" /></div>
+        </section>
       </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-pink-50/30 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto flex flex-col gap-6">
-        {/* 🚨 BANNER DE AVISO: PROJETO DE PORTFÓLIO FICTÍCIO */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex items-start gap-3 shadow-sm">
-          <Info className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
-          <div className="text-xs sm:text-sm text-amber-900 leading-relaxed">
-            <strong className="font-bold text-amber-950 block text-sm mb-0.5">
-              ⚠️ Nota de Portfólio / Demonstration Project
-            </strong>
-            Este e-commerce é um{" "}
-            <strong>
-              projeto fictício de demonstração para portfólio de desenvolvimento
-              web
-            </strong>
-            . Nenhuma cobrança real será efetuada e nenhum produto
-            comercializado será entregue.
-          </div>
-        </div>
-
-        {/* Botão de Voltar */}
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#FF6987] transition-colors group cursor-pointer w-fit"
-        >
-          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          <span>Voltar para a loja</span>
-        </button>
-
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-800">
-          Finalizar Pedido 🌸
-        </h1>
-
-        <form
-          onSubmit={handleFinishOrder}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        >
-          {/* COLUNA DA ESQUERDA: Formulário de Dados e Endereço */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
-            {/* Seção 1: Dados Pessoais */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-pink-100/60 flex flex-col gap-4">
-              <div className="flex items-center gap-2 pb-3 border-b border-pink-100">
-                <User className="w-5 h-5 text-[#FF6987]" />
-                <h3 className="text-base font-bold text-gray-800">
-                  Seus Dados
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5 sm:col-span-2">
-                  <label className="text-xs font-semibold text-gray-700">
-                    Nome Completo *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    required
-                    placeholder="Digite seu nome completo"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full p-3 border border-pink-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 transition-all text-gray-700"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5 sm:col-span-2">
-                  <label className="text-xs font-semibold text-gray-700">
-                    WhatsApp / Celular *
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    required
-                    placeholder="(11) 99999-9999"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full p-3 border border-pink-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 transition-all text-gray-700"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Seção 2: Método de Entrega & Endereço */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-pink-100/60 flex flex-col gap-4">
-              <div className="flex items-center gap-2 pb-3 border-b border-pink-100">
-                <MapPin className="w-5 h-5 text-[#FF6987]" />
-                <h3 className="text-base font-bold text-gray-800">Entrega</h3>
-              </div>
-
-              {/* Opções Entrega / Retirada */}
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setDeliveryMethod("delivery")}
-                  className={`p-3 rounded-2xl border text-xs font-bold transition-all text-center cursor-pointer ${
-                    deliveryMethod === "delivery"
-                      ? "border-[#FF6987] bg-pink-50 text-[#FF6987] shadow-xs"
-                      : "border-pink-100 bg-white text-gray-600 hover:bg-pink-50/50"
-                  }`}
-                >
-                  🚚 Receber no Endereço
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setDeliveryMethod("pickup")}
-                  className={`p-3 rounded-2xl border text-xs font-bold transition-all text-center cursor-pointer ${
-                    deliveryMethod === "pickup"
-                      ? "border-[#FF6987] bg-pink-50 text-[#FF6987] shadow-xs"
-                      : "border-pink-100 bg-white text-gray-600 hover:bg-pink-50/50"
-                  }`}
-                >
-                  🏬 Retirar no Ateliê
-                </button>
-              </div>
-
-              {/* Campos do Endereço */}
-              {deliveryMethod === "delivery" && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 animate-in fade-in duration-200">
-                  <div className="flex flex-col gap-1.5 sm:col-span-1">
-                    <label className="text-xs font-semibold text-gray-700">
-                      CEP
-                    </label>
-                    <input
-                      type="text"
-                      name="cep"
-                      placeholder="00000-000"
-                      value={formData.cep}
-                      onChange={handleChange}
-                      className="w-full p-2.5 border border-pink-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-700"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 sm:col-span-2">
-                    <label className="text-xs font-semibold text-gray-700">
-                      Rua / Logradouro *
-                    </label>
-                    <input
-                      type="text"
-                      name="address"
-                      required={deliveryMethod === "delivery"}
-                      placeholder="Ex: Rua das Flores"
-                      value={formData.address}
-                      onChange={handleChange}
-                      className="w-full p-2.5 border border-pink-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-700"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 sm:col-span-1">
-                    <label className="text-xs font-semibold text-gray-700">
-                      Número *
-                    </label>
-                    <input
-                      type="text"
-                      name="number"
-                      required={deliveryMethod === "delivery"}
-                      placeholder="123"
-                      value={formData.number}
-                      onChange={handleChange}
-                      className="w-full p-2.5 border border-pink-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-700"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 sm:col-span-2">
-                    <label className="text-xs font-semibold text-gray-700">
-                      Complemento
-                    </label>
-                    <input
-                      type="text"
-                      name="complement"
-                      placeholder="Apto 42, Bloco B"
-                      value={formData.complement}
-                      onChange={handleChange}
-                      className="w-full p-2.5 border border-pink-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-700"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 sm:col-span-1">
-                    <label className="text-xs font-semibold text-gray-700">
-                      Bairro
-                    </label>
-                    <input
-                      type="text"
-                      name="neighborhood"
-                      placeholder="Centro"
-                      value={formData.neighborhood}
-                      onChange={handleChange}
-                      className="w-full p-2.5 border border-pink-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-700"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 sm:col-span-2">
-                    <label className="text-xs font-semibold text-gray-700">
-                      Cidade / UF
-                    </label>
-                    <input
-                      type="text"
-                      name="city"
-                      placeholder="São Paulo / SP"
-                      value={formData.city}
-                      onChange={handleChange}
-                      className="w-full p-2.5 border border-pink-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-700"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Observações */}
-              <div className="flex flex-col gap-1.5 pt-2">
-                <label className="text-xs font-semibold text-gray-700">
-                  Observações do Pedido
-                </label>
-                <textarea
-                  name="observations"
-                  rows={2}
-                  placeholder="Instruções especiais de entrega ou personalização..."
-                  value={formData.observations}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-pink-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-700"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* COLUNA DA DIREITA: Resumo dos Itens e Ação Final */}
-          <div className="lg:col-span-5 flex flex-col gap-6 sticky top-24">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-pink-100/60 flex flex-col gap-4">
-              <h3 className="text-base font-bold text-gray-800 pb-3 border-b border-pink-100">
-                Resumo do Pedido ({cart.length})
-              </h3>
-
-              {/* Lista compacta dos itens */}
-              <div className="flex flex-col gap-3 max-h-72 overflow-y-auto pr-1">
-                {cart.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-3 py-2 border-b border-pink-50 last:border-none"
-                  >
-                    <img
-                      src={item.product.imageUrl}
-                      alt={item.product.name}
-                      className="w-12 h-12 object-cover rounded-lg border border-pink-100 shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-bold text-gray-800 truncate">
-                        {item.product.name}
-                      </h4>
-                      <p className="text-[11px] text-gray-500">
-                        Qtd: {item.quantity}
-                      </p>
-
-                      {/* Personalizações solicitadas */}
-                      {Object.keys(item.customValues).length > 0 && (
-                        <div className="text-[10px] text-gray-400 truncate">
-                          {Object.values(item.customValues).join(", ")}
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-xs font-bold text-[#FF6987] shrink-0">
-                      R$ {item.totalPrice.toFixed(2).replace(".", ",")}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Valores Totais */}
-              <div className="flex flex-col gap-2 pt-3 border-t border-pink-100 text-sm">
-                <div className="flex justify-between text-gray-600 text-xs">
-                  <span>Subtotal</span>
-                  <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
-                </div>
-                <div className="flex justify-between text-gray-600 text-xs">
-                  <span>Frete</span>
-                  <span className="text-emerald-600 font-semibold">
-                    A combinar via WhatsApp
-                  </span>
-                </div>
-                <div className="flex justify-between text-base font-extrabold text-gray-800 pt-2 border-t border-pink-100">
-                  <span>Total</span>
-                  <span className="text-[#FF6987]">
-                    R$ {subtotal.toFixed(2).replace(".", ",")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Botão de Enviar via WhatsApp */}
-              <button
-                type="submit"
-                className="w-full bg-[#FF6987] hover:bg-pink-600 text-white py-3.5 px-6 rounded-full text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Confirmar e Simular Pedido</span>
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
+      <section className="checkout-summary checkout-card min-w-0 lg:col-span-5" aria-label="Resumo do pedido">
+        <h2 className="mb-4 text-lg font-bold">Resumo do pedido ({cart.length})</h2>
+        <ul className="space-y-4">{cart.map((item, index) => <li key={index} className="flex items-start gap-3 border-b border-pink-100 pb-4"><img src={item.product.imageUrl} alt="" width="48" height="48" className="h-12 w-12 shrink-0 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="text-sm font-bold leading-snug">{item.product.name}</p><p className="mt-1 text-sm text-gray-600">{item.quantity} unidade(s) · {formatPrice(item.totalPrice)}</p>{Object.entries(item.customValues).map(([key, value]) => <p key={key} className="mt-1 break-words text-sm text-gray-500">{item.product.customizationOptions.find(option => option.id === key)?.label ?? key}: {value}</p>)}</div></li>)}</ul>
+        <dl className="mt-5 space-y-3 text-sm"><div className="flex flex-wrap justify-between gap-2"><dt>Subtotal</dt><dd className="font-bold">{formatPrice(subtotal)}</dd></div><div className="flex flex-wrap justify-between gap-2"><dt>Frete</dt><dd>{deliveryMethod === 'pickup' ? 'Retirada no ateliê' : 'A combinar com o ateliê'}</dd></div><div className="flex flex-wrap justify-between gap-2 border-t border-pink-100 pt-3 text-lg font-extrabold"><dt>Total dos produtos</dt><dd className="text-[#b93857]">{formatPrice(subtotal)}</dd></div></dl>
+        <p className="mt-3 text-sm text-gray-600">{deliveryMethod === 'delivery' ? 'O valor acima não inclui frete.' : 'Não há cobrança de frete para retirada.'}</p>
+        {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+        <button type="submit" className="mt-5 min-h-12 w-full rounded-full bg-[#b93857] px-5 py-3 text-sm font-bold text-white hover:bg-[#982d47]">Confirmar pedido de demonstração</button>
+      </section>
+    </form>
+  </section>;
+}

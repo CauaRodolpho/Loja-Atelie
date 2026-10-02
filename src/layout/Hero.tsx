@@ -1,174 +1,125 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type TouchEvent } from 'react';
+import { gsap } from 'gsap';
 import { Link } from 'react-router-dom';
-import { Sparkle, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { HeroSlide } from '../types';
+import { ChevronLeft, ChevronRight, Heart } from 'lucide-react';
+import hero1 from '../assets/hero1.webp';
+import hero2 from '../assets/hero2.webp';
+import hero3 from '../assets/hero3.webp';
+import hero1Mobile from '../assets/hero1-mobile.webp';
+import hero2Mobile from '../assets/hero2-mobile.webp';
+import hero3Mobile from '../assets/hero3-mobile.webp';
 
-import hero1 from '../assets/hero1.png';
-import hero2 from '../assets/hero2.png';
-import hero3 from '../assets/hero3.png';
-
-const HERO_SLIDES: HeroSlide[] = [
-  {
-    id: '1',
-    badgeText: 'Feito à mão com amor ♡',
-    title: 'onde a arte encontra a criatividade!',
-    description: 'Aqui você encontra produtos feitos com carinho, criatividade e muita personalidade. Cada peça é única, assim como você!',
-    buttonText: 'Ver Produtos',
-    buttonLink: '/categorias',
-    imageUrl: hero1,
-    imagePosition: 'right',
-    bgColor: 'bg-pink-50/60',
-    badgeBg: 'bg-[#FF6987]',
-    buttonBg: 'bg-[#FF6987] hover:bg-pink-600',
-    titleColor: 'text-gray-800',
-  },
-  {
-    id: '2',
-    badgeText: 'Do seu jeitinho ♡',
-    title: 'em algo único!',
-    description: 'Canecas, chaveiros e presentes personalizados, criados especialmente para deixar cada momento ainda mais especial.',
-    buttonText: 'Ver Produtos',
-    buttonLink: '/categorias',
-    imageUrl: hero2,
-    imagePosition: 'left',
-    bgColor: 'bg-amber-50/60',
-    badgeBg: 'bg-amber-500',
-    buttonBg: 'bg-amber-500 hover:bg-amber-600',
-    titleColor: 'text-gray-800',
-  },
-  {
-    id: '3',
-    badgeText: 'Da AnaCraft até você ♡',
-    title: 'com todo carinho!',
-    description: 'Cada detalhe é feito, embalado e preparado com cuidado para que seu pedido chegue até você tão especial quanto foi criado.',
-    buttonText: 'Fazer Meu Pedido',
-    buttonLink: '/categorias',
-    imageUrl: hero3,
-    imagePosition: 'right',
-    bgColor: 'bg-purple-50/60',
-    badgeBg: 'bg-purple-500',
-    buttonBg: 'bg-purple-500 hover:bg-purple-600',
-    titleColor: 'text-gray-800',
-  },
+const slides = [
+  { badge: 'Feito à mão com amor ♡', title: 'Bem-vinda à AnaCraft, onde a arte encontra a criatividade!', description: 'Produtos feitos com carinho, criatividade e personalidade. Cada peça é única, assim como você.', image: hero1, mobile: hero1Mobile, position: 'right', button: 'Ver produtos' },
+  { badge: 'Do seu jeitinho ♡', title: 'Transforme suas ideias em algo único!', description: 'Canecas, chaveiros e presentes personalizados para deixar cada momento ainda mais especial.', image: hero2, mobile: hero2Mobile, position: 'left', button: 'Personalizar meu presente' },
+  { badge: 'Da AnaCraft até você ♡', title: 'Seu pedido preparado com todo carinho!', description: 'Cada detalhe é feito, embalado e preparado com cuidado, da criação até a chegada à sua casa.', image: hero3, mobile: hero3Mobile, position: 'right', button: 'Escolher meu mimo' },
 ];
 
-export const Hero = () => { 
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const nextSlide = () => setCurrentSlide((prev) => (prev === HERO_SLIDES.length - 1 ? 0 : prev + 1));
-  const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1));
-
+export function Hero() {
+  const heroRef = useRef<HTMLElement>(null);
+  const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
+  const copyRef = useRef<HTMLDivElement>(null);
+  const requestId = useRef(0);
+  const requestedSlide = useRef(0);
+  const [current, setCurrent] = useState(0);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [touching, setTouching] = useState(false);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   useEffect(() => {
-    const interval = setInterval(nextSlide, 5000);  
-    return () => clearInterval(interval);
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const change = () => setReducedMotion(media.matches);
+    media.addEventListener('change', change);
+    return () => media.removeEventListener('change', change);
   }, []);
-
-  const slide = HERO_SLIDES[currentSlide];
-
+  const goTo = useCallback((index: number) => {
+    const next = (index + slides.length) % slides.length;
+    requestedSlide.current = next;
+    const id = ++requestId.current;
+    const image = imageRefs.current[next];
+    const ready = () => {
+      if (id === requestId.current) setCurrent(next);
+    };
+    if (image?.complete && image.naturalWidth) ready();
+    else image?.decode().then(ready, () => { requestedSlide.current = current; });
+  }, [current]);
+  useEffect(() => () => { requestId.current++; }, []);
+  useEffect(() => {
+    if (hovered || focused || touching || reducedMotion) return;
+    const timer = window.setInterval(() => goTo(current + 1), 7000);
+    return () => window.clearInterval(timer);
+  }, [hovered, focused, touching, reducedMotion, current, goTo]);
+  useLayoutEffect(() => {
+    const copy = copyRef.current;
+    const pictures = imageRefs.current.map(image => image?.parentElement).filter((element): element is HTMLElement => !!element);
+    const picture = pictures[current];
+    if (!copy || !picture) return;
+    const others = pictures.filter(element => element !== picture);
+    gsap.set(others, { zIndex: 0 });
+    gsap.set(picture, { zIndex: 1 });
+    if (reducedMotion) {
+      gsap.set(picture, { opacity: 1 });
+      gsap.set(others, { opacity: 0 });
+      return;
+    }
+    const timeline = gsap.timeline({ defaults: { ease: 'power2.out', duration: 0.55 } });
+    timeline.to(picture, { opacity: 1, onComplete: () => { gsap.set(others, { opacity: 0 }); } }, 0);
+    const context = gsap.context(() => {
+      timeline.fromTo(copy, { opacity: 0.65, y: 8 }, { opacity: 1, y: 0, clearProps: 'transform,opacity' }, 0)
+        .from('.hero-badge, .hero-word', { opacity: 0, y: 8, duration: 0.4, stagger: 0.018, clearProps: 'transform,opacity' }, 0.04)
+        .from('.hero-description, .hero-actions', { opacity: 0, y: 8, stagger: 0.06, clearProps: 'transform,opacity' }, 0.12);
+    }, copy);
+    return () => { timeline.kill(); context.revert(); };
+  }, [current, reducedMotion]);
+  const slide = slides[current];
+  const move = (direction: number) => goTo(requestedSlide.current + direction);
+  const cancelSwipe = () => {
+    touchStart.current = null;
+    setTouching(false);
+  };
+  const startSwipe = (event: TouchEvent<HTMLElement>) => {
+    if (event.touches.length !== 1 || (event.target as Element).closest('a, button, input, select, textarea')) {
+      cancelSwipe();
+      return;
+    }
+    const touch = event.touches[0];
+    touchStart.current = { x: touch.clientX, y: touch.clientY };
+    setTouching(true);
+  };
+  const finishSwipe = (event: TouchEvent<HTMLElement>) => {
+    const start = touchStart.current;
+    cancelSwipe();
+    if (!start || event.touches.length || !event.changedTouches.length) return;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) >= 50 && Math.abs(dx) > Math.abs(dy) * 1.3) move(dx < 0 ? 1 : -1);
+  };
   return (
-    <section className="min-h-screen relative w-full overflow-hidden flex items-center bg-[#FFF5F6] transition-colors duration-500">
-      {/* Imagem de Fundo Dinâmica */}
-      <img 
-        src={slide.imageUrl} 
-        alt={slide.badgeText} 
-        className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 pointer-events-none ${
-          slide.imagePosition === 'left' ? 'object-left' : 'object-right'
-        }`}
-      />
-
-      {/* Gradiente na Base */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#FFF5F6] to-transparent z-10 pointer-events-none" />
-
-      {/* Setas de Navegação Manual */}
-      <button 
-        onClick={prevSlide}
-        aria-label="Slide anterior"
-        className="absolute left-4 z-30 p-2 rounded-full bg-white/70 text-[#FF6987] hover:bg-white shadow-md transition-all cursor-pointer hidden md:flex"
-      >
-        <ChevronLeft className="w-6 h-6" />
-      </button>
-
-      <button 
-        onClick={nextSlide}
-        aria-label="Próximo slide"
-        className="absolute right-4 z-30 p-2 rounded-full bg-white/70 text-[#FF6987] hover:bg-white shadow-md transition-all cursor-pointer hidden md:flex"
-      >
-        <ChevronRight className="w-6 h-6" />
-      </button>
-
-      {/* Conteúdo Dinâmico */}
-      <div className="container mx-auto px-8 md:px-16 pt-12 pb-12 z-20 relative">
-        <div className={`max-w-xl flex flex-col transition-all duration-500 ${
-          slide.imagePosition === 'left' ? 'ml-auto items-start md:items-end text-left md:text-right' : 'items-start text-left'
-        }`}>
-          
-          {/* Badge */}
-          <span className="relative inline-block font-handwritten font-semibold text-2xl text-[#FF6987] mb-2">
-            {slide.badgeText}
-            <Sparkle className="w-5 h-5 text-[#FF6987] rotate-12 absolute -top-2 -right-6" />
-          </span>
-
-          {/* Título Principal */}
-          <h1 className="text-4xl md:text-5xl font- font-bold text-brand-dark leading-tight mt-1">
-            {slide.id === '1' && (
-              <>
-                Bem-vinda à <span className="text-[#FF6987]">AnaCraft</span>, <br />
-                {slide.title}
-              </>
-            )}
-            {slide.id === '2' && (
-              <>
-                Transforme suas ideias <br />
-                em algo <span className="text-[#FF6987]">único!</span>
-              </>
-            )}
-            {slide.id === '3' && (
-              <>
-                Seu pedido preparado <br />
-                com todo <span className="text-[#FF6987]">carinho!</span>
-              </>
-            )}
-          </h1>
-
-          {/* Subtítulo */}
-          <p className="text-lg md:text-xl text-gray-700 mt-4 font-sans leading-relaxed">
-            {slide.description}
-          </p>
-
-          {/* Botões */}
-          <div className="flex flex-wrap items-center gap-4 mt-8">
-            <Link 
-              to={slide.buttonLink}
-              className="px-7 py-3 bg-[#FF6987] hover:bg-pink-600 text-white font-semibold rounded-full shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
-            >
-              {slide.buttonText}
-            </Link>
-            
-            <Link 
-              to="/categorias"
-              className="px-6 py-3 border-2 border-[#FF6987] text-[#FF6987] hover:bg-pink-50 font-semibold rounded-full transition-all duration-300 flex items-center gap-2 cursor-pointer"
-            >
-              {slide.id === '1' ? 'Explorar Mais' : slide.id === '2' ? 'Personalizar' : 'Saiba Mais'}
-              <Heart className="w-4 h-4 fill-current" />
-            </Link>
+    <section ref={heroRef} aria-label="Destaques do ateliê" aria-roledescription="carrossel" className="hero relative overflow-hidden bg-[#FFF5F6]" onPointerEnter={event => { if (event.pointerType === 'mouse') setHovered(true); }} onPointerLeave={event => { if (event.pointerType === 'mouse') setHovered(false); }} onTouchStart={startSwipe} onTouchMove={event => { if (event.touches.length !== 1) cancelSwipe(); }} onTouchEnd={finishSwipe} onTouchCancel={cancelSwipe} onFocusCapture={() => setFocused(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
+      <div className="hero-content page-container relative z-10 py-8 sm:py-12 lg:py-20">
+        <div ref={copyRef} key={current} className={`hero-copy ${slide.position === 'left' ? 'hero-copy-right' : ''}`}>
+          <p className="hero-badge mb-3 font-handwritten text-2xl font-semibold text-[#b93857] sm:text-3xl">{slide.badge}</p>
+          <h1 aria-label={slide.title} className="text-[clamp(1.875rem,3vw,2.875rem)] font-extrabold leading-[1.12] text-brand-dark"><span aria-hidden="true">{slide.title.split(' ').map((word, index) => <span key={index}><span className="hero-word inline-block">{word}</span>{' '}</span>)}</span></h1>
+          <p className="hero-description mt-4 max-w-lg text-base leading-relaxed text-gray-700 sm:text-lg">{slide.description}</p>
+          <div className="hero-actions mt-6 flex flex-wrap gap-3">
+            <Link to="/catalogo" className="hero-button inline-flex min-h-12 items-center justify-center rounded-full bg-[#b93857] px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-[#982d47]">{slide.button}</Link>
+            <Link to="/sobre" className="hero-button inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#b93857] bg-[#ffe1e9] px-6 py-3 text-sm font-bold text-[#b93857]">Conheça o ateliê <Heart className="h-4 w-4" /></Link>
           </div>
-
-        </div> 
+        </div>
       </div>
-
-      {/* Indicadores (Bolinhas) */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
-        {HERO_SLIDES.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentSlide(index)}
-            aria-label={`Ir para o slide ${index + 1}`}
-            className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-              currentSlide === index ? 'w-8 bg-[#FF6987]' : 'w-2.5 bg-pink-200 hover:bg-pink-300'
-            }`}
-          />
-        ))}
+      <div className="hero-media">
+        {slides.map((item, index) => <picture key={item.image} className="hero-picture absolute inset-0 block h-full w-full" style={{ opacity: index === 0 ? 1 : 0 }} aria-hidden={index !== current}>
+          <source media="(max-width: 1023px)" srcSet={item.mobile} />
+          <img ref={element => { imageRefs.current[index] = element; }} src={item.image} alt="Personagem AnaCraft com presentes e produtos artesanais" width="1672" height="941" fetchPriority={index === 0 ? 'high' : 'auto'} className={`h-full w-full ${item.position === 'left' ? 'object-left' : 'object-right'}`} />
+        </picture>)}
+      </div>
+      <div className="hero-controls relative z-20 flex items-center justify-center gap-0 pb-5 lg:absolute lg:bottom-5 lg:left-1/2 lg:-translate-x-1/2 lg:pb-0 lg:rounded-full lg:bg-[#fff0f3]/90 lg:px-2">
+        <button type="button" onClick={() => move(-1)} aria-label="Slide anterior" className="hero-control"><ChevronLeft className="h-5 w-5" /></button>
+        {slides.map((_, index) => <button type="button" key={index} onClick={() => goTo(index)} aria-label={`Mostrar slide ${index + 1}`} aria-current={current === index ? 'true' : undefined} className="flex h-11 w-11 items-center justify-center rounded-full"><span className={`h-1 rounded-full transition-all ${current === index ? 'w-2 bg-[#b93857]' : 'w-1 bg-pink-300'}`} /></button>)}
+        <button type="button" onClick={() => move(1)} aria-label="Próximo slide" className="hero-control"><ChevronRight className="h-5 w-5" /></button>
       </div>
     </section>
   );
-};
+}

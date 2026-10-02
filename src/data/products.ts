@@ -1,23 +1,33 @@
 import type { Product } from '../types';
 
 // Importação dos Ícones das Categorias
-import acessoriosImage from '../assets/icons/acessorios.png';
-import adesivosImage from '../assets/icons/personalizado.png';
-import canecasImage from '../assets/icons/canecas.png';
-import decoracaoImage from '../assets/icons/decoracao.png';
-import papelariaImage from '../assets/icons/papelaria.png';
+import acessoriosImage from '../assets/icons/acessorios.webp';
+import adesivosImage from '../assets/icons/personalizado.webp';
+import canecasImage from '../assets/icons/canecas.webp';
+import decoracaoImage from '../assets/icons/decoracao.webp';
+import papelariaImage from '../assets/icons/papelaria.webp';
 
 // Importação das Imagens dos Produtos Reais
-import acessorio1 from '../assets/itens/acessorio1.png';
-import acessorio2 from '../assets/itens/acessorio2.png';
-import adesivo1 from '../assets/itens/adesivo1.png';
-import adesivo2 from '../assets/itens/adesivo2.png';
-import caneca1 from '../assets/itens/caneca1.png';
-import caneca2 from '../assets/itens/caneca2.png';
-import ima1 from '../assets/itens/ima1.png';
-import ima2 from '../assets/itens/ima2.png';
-import papelaria1 from '../assets/itens/papelaria1.png';
-import papelaria2 from '../assets/itens/papelaria2.png';
+import acessorio1 from '../assets/itens/acessorio1.webp';
+import acessorio1Small from '../assets/itens/acessorio1-small.webp';
+import acessorio2 from '../assets/itens/acessorio2.webp';
+import acessorio2Small from '../assets/itens/acessorio2-small.webp';
+import adesivo1 from '../assets/itens/adesivo1.webp';
+import adesivo1Small from '../assets/itens/adesivo1-small.webp';
+import adesivo2 from '../assets/itens/adesivo2.webp';
+import adesivo2Small from '../assets/itens/adesivo2-small.webp';
+import caneca1 from '../assets/itens/caneca1.webp';
+import caneca1Small from '../assets/itens/caneca1-small.webp';
+import caneca2 from '../assets/itens/caneca2.webp';
+import caneca2Small from '../assets/itens/caneca2-small.webp';
+import ima1 from '../assets/itens/ima1.webp';
+import ima1Small from '../assets/itens/ima1-small.webp';
+import ima2 from '../assets/itens/ima2.webp';
+import ima2Small from '../assets/itens/ima2-small.webp';
+import papelaria1 from '../assets/itens/papelaria1.webp';
+import papelaria1Small from '../assets/itens/papelaria1-small.webp';
+import papelaria2 from '../assets/itens/papelaria2.webp';
+import papelaria2Small from '../assets/itens/papelaria2-small.webp';
 
 export const PRODUCTS: Product[] = [
   // 1. ACESSÓRIOS (2 itens)
@@ -28,6 +38,7 @@ export const PRODUCTS: Product[] = [
     price: 38.90,
     category: 'acessorios',
     imageUrl: acessorio1,
+    imageUrlSmall: acessorio1Small,
     minQuantity: 1,
     productionsDays: 3,
     customizationOptions: [
@@ -60,6 +71,7 @@ export const PRODUCTS: Product[] = [
     price: 38.90,
     category: 'acessorios',
     imageUrl: acessorio2,
+    imageUrlSmall: acessorio2Small,
     minQuantity: 1,
     productionsDays: 3,
     customizationOptions: [
@@ -94,6 +106,7 @@ export const PRODUCTS: Product[] = [
     price: 15.00,
     category: 'adesivos',
     imageUrl: adesivo1,
+    imageUrlSmall: adesivo1Small,
     minQuantity: 1,
     productionsDays: 2,
     customizationOptions: [
@@ -126,6 +139,7 @@ export const PRODUCTS: Product[] = [
     price: 45.00,
     category: 'adesivos',
     imageUrl: adesivo2,
+    imageUrlSmall: adesivo2Small,
     minQuantity: 1,
     productionsDays: 3,
     customizationOptions: [
@@ -159,6 +173,7 @@ export const PRODUCTS: Product[] = [
     price: 49.90,
     category: 'canecas',
     imageUrl: caneca1,
+    imageUrlSmall: caneca1Small,
     minQuantity: 1,
     productionsDays: 3,
     customizationOptions: [
@@ -191,6 +206,7 @@ export const PRODUCTS: Product[] = [
     price: 45.90,
     category: 'canecas',
     imageUrl: caneca2,
+    imageUrlSmall: caneca2Small,
     minQuantity: 1,
     productionsDays: 3,
     customizationOptions: [
@@ -225,6 +241,7 @@ export const PRODUCTS: Product[] = [
     price: 8.50,
     category: 'decoracao',
     imageUrl: ima1,
+    imageUrlSmall: ima1Small,
     minQuantity: 1,
     productionsDays: 2,
     customizationOptions: [
@@ -257,6 +274,7 @@ export const PRODUCTS: Product[] = [
     price: 8.50,
     category: 'decoracao',
     imageUrl: ima2,
+    imageUrlSmall: ima2Small,
     minQuantity: 1,
     productionsDays: 2,
     customizationOptions: [
@@ -291,6 +309,7 @@ export const PRODUCTS: Product[] = [
     price: 35.00,
     category: 'papelaria',
     imageUrl: papelaria1,
+    imageUrlSmall: papelaria1Small,
     minQuantity: 1,
     productionsDays: 4,
     customizationOptions: [
@@ -321,6 +340,7 @@ export const PRODUCTS: Product[] = [
     price: 6.90,
     category: 'papelaria',
     imageUrl: papelaria2,
+    imageUrlSmall: papelaria2Small,
     minQuantity: 5,
     productionsDays: 5,
     customizationOptions: [

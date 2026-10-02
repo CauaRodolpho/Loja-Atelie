@@ -30,24 +30,19 @@ export const ProductModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-8">
-      {/* Container do Modal Ampliado (Aumentado de max-w-4xl/70% para max-w-6xl/90%) */}
-      <div className="relative w-full md:w-[98%] max-w-[1400px] bg-[#FFF5F6] rounded-3xl p-8 md:p-12 shadow-2xl overflow-y-auto h-[95vh]">
-        {/* Botão de Fechar */}
+      <div className="relative w-full md:w-[98%] max-w-[1400px] bg-[#FFF5F6] rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl overflow-y-auto max-h-[90dvh]">
         <button
           onClick={onClose}
           className="absolute top-5 right-5 text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-pink-100/50 cursor-pointer z-10"
         >
           <X className="w-7 h-7" />
         </button>
-
-        {/* Grid de 2 Colunas Ampliado */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start mt-2">
-          {/* Coluna Esquerda: Imagem e Ficha Técnica com dimensões maiores */}
           <div className="w-full flex flex-col gap-4">
             <img
               src={product.imageUrl}
               alt={product.name}
-              className="w-full h-[380px] lg:h-[460px] object-cover rounded-2xl shadow-sm"
+              className="w-full aspect-square max-h-[460px] object-cover rounded-2xl shadow-sm"
             />
 
             <div className="bg-white/60 rounded-2xl p-4 text-xs lg:text-sm text-gray-600 flex flex-col gap-1 border border-pink-100">
@@ -61,8 +56,6 @@ export const ProductModal = ({
               </p>
             </div>
           </div>
-
-          {/* Coluna Direita: Informações e Opções Dinâmicas */}
           <div className="flex flex-col gap-5">
             <div>
               <span className="text-xs lg:text-sm uppercase tracking-wider text-pink-500 font-bold">
@@ -79,8 +72,6 @@ export const ProductModal = ({
             <p className="text-3xl lg:text-4xl font-bold text-[#FF6987]">
               R$ {product.price.toFixed(2).replace(".", ",")}
             </p>
-
-            {/* Renderização Dinâmica de Customização */}
             <div className="flex flex-col gap-4 my-2">
               {product.customizationOptions?.map(
                 (option: CustomizationOption) => (
@@ -136,9 +127,7 @@ export const ProductModal = ({
                 ),
               )}
             </div>
-
-            {/* Seletor de Quantidade e Ações */}
-            <div className="flex items-center gap-4 mt-2">
+            <div className="flex flex-col xl:flex-row items-stretch gap-4 mt-2">
               <div className="flex items-center border border-pink-200 rounded-full bg-white px-4 py-1.5">
                 <button
                   onClick={() =>
@@ -161,7 +150,7 @@ export const ProductModal = ({
 
               <button
                 onClick={handleAddToCart}
-                className="flex-1 bg-[#FF6987] hover:bg-pink-600 text-white py-3 px-6 rounded-full text-base font-semibold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 bg-[#b93857] hover:bg-[#982d47] text-white py-3 px-6 rounded-full text-base font-semibold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 Adicionar ao Carrinho
               </button>

@@ -1,32 +1,28 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { PRODUCTS } from "../data/products";
+import { FavoritesContext } from "../hooks/useFavorites";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import type { Product } from "../types";
 
-interface FavoritesContextData {
-  favorites: Product[];
-  isFavoritesOpen: boolean;
-  openFavorites: () => void;
-  closeFavorites: () => void;
-  toggleFavorite: (product: Product) => void;
-  isFavorite: (productId: string) => boolean;
-  totalFavorites: number;
-}
-
-const FavoritesContext = createContext<FavoritesContextData>({} as FavoritesContextData);
 
 export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
   const [favorites, setFavorites] = useState<Product[]>(() => {
-    const saved = localStorage.getItem("anacraft_favorites");
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem("anacraft_favorites");
+      const parsed: unknown = saved ? JSON.parse(saved) : [];
+      if (!Array.isArray(parsed)) return [];
+      const ids = new Set(parsed.flatMap(item => item && typeof item === "object" && typeof item.productId === "string" ? [item.productId] : []));
+      return PRODUCTS.filter(product => ids.has(product.productId));
+    } catch { return []; }
   });
 
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("anacraft_favorites", JSON.stringify(favorites));
+    try { localStorage.setItem("anacraft_favorites", JSON.stringify(favorites)); } catch { /* O estado permanece disponível durante a sessão. */ }
   }, [favorites]);
 
   const openFavorites = () => setIsFavoritesOpen(true);
-  const closeFavorites = () => setIsFavoritesOpen(false);
+  const closeFavorites = useCallback(() => setIsFavoritesOpen(false), []);
 
   const isFavorite = (productId: string) => {
     return favorites.some((p) => String(p.productId) === String(productId));
@@ -58,5 +54,3 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     </FavoritesContext.Provider>
   );
 };
-
-export const useFavorites = () => useContext(FavoritesContext);
