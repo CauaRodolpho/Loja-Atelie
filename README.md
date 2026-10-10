@@ -4,7 +4,11 @@ Loja virtual demonstrativa de produtos artesanais personalizados, desenvolvida p
 
 O objetivo foi construir uma aplicação front-end com telas conectadas e estado compartilhado, cuidando tanto das regras do carrinho quanto da experiência em celulares, tablets e computadores.
 
-[Site na Vercel](https://loja-atelie-phi.vercel.app/) · [Código no GitHub](https://github.com/CauaRodolpho/Loja-Atelie) · [Meu LinkedIn](https://www.linkedin.com/in/cau%C3%A3-rodolpho/)
+## Demonstração
+
+[Acessar o Ateliê AnaCraft na Vercel](https://loja-atelie-phi.vercel.app/)
+
+[Código no GitHub](https://github.com/CauaRodolpho/Loja-Atelie) · [Meu LinkedIn](https://www.linkedin.com/in/cau%C3%A3-rodolpho/)
 
 > A revisão mais recente está no [ambiente de revisão](https://atelie-anacraft-caua.rodolfinhom5.chatgpt.site), com acesso restrito ao proprietário. O GitHub e a Vercel precisam receber estes arquivos para refletir esta versão.
 
