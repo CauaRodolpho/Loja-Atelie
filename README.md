@@ -4,6 +4,8 @@ Loja virtual demonstrativa de produtos artesanais personalizados, desenvolvida p
 
 O objetivo foi construir uma aplicação front-end com telas conectadas e estado compartilhado, cuidando tanto das regras do carrinho quanto da experiência em celulares, tablets e computadores.
 
+> Projeto idealizado e desenvolvido por **Cauã Rodolpho**, responsável pela definição das funcionalidades, experiência de compra, identidade visual e implementação da aplicação.
+
 ## Demonstração
 
 [Acessar o Ateliê AnaCraft na Vercel](https://loja-atelie-phi.vercel.app/)
@@ -33,9 +35,9 @@ O objetivo foi construir uma aplicação front-end com telas conectadas e estado
   </tr>
 </table>
 
-Capturas da aplicação nesta revisão, usando produtos de demonstração. As ilustrações dos banners foram criadas com apoio de IA e adaptadas para desktop e celular.
+Capturas da aplicação nesta revisão, usando produtos de demonstração. As ilustrações dos banners foram desenvolvidas com apoio de ferramentas de IA e passaram por direção visual, seleção e adaptação para as versões desktop e celular.
 
-## O que funciona
+## Principais funcionalidades
 
 - **Catálogo e busca:** filtros por categoria e pesquisa por nome, com sugestões no cabeçalho. A busca ignora diferenças de acentuação e preserva os filtros na URL.
 - **Personalização:** cada produto define seus campos obrigatórios, opções e quantidade mínima.
@@ -72,9 +74,9 @@ Comparar apenas o identificador do produto não seria suficiente: duas unidades 
 
 O cabeçalho, os cards, os painéis e o checkout precisam acessar o mesmo carrinho e os mesmos favoritos. Os providers concentram essas operações, enquanto hooks oferecem acesso aos componentes. Para o tamanho atual da aplicação, essa estrutura atende ao fluxo sem acrescentar uma biblioteca de estado global.
 
-### Persistência e seus limites
+### Persistência local
 
-O LocalStorage mantém o carrinho e os favoritos no dispositivo. A leitura trata erros de JSON, recupera os produtos pelo catálogo atual e descarta registros inválidos. Os favoritos são deduplicados, e preços e totais do carrinho são recalculados ao restaurar os itens; falhas de escrita não interrompem o uso do estado em memória. Essa persistência não sincroniza dispositivos nem substitui validação em um servidor.
+O LocalStorage mantém o carrinho e os favoritos no dispositivo. Na restauração, a aplicação valida a estrutura salva, relaciona os itens ao catálogo atual, remove duplicidades e recalcula preços e totais. Essa estratégia permite demonstrar continuidade entre acessos sem adicionar um backend ao escopo do projeto.
 
 ### Imagens e layout no celular
 
@@ -145,15 +147,23 @@ docs/
   images/       Capturas usadas neste README
 ```
 
-## Verificações
+## Qualidade e validação
 
-O projeto passou por build, análise com ESLint e conferências de navegação e responsividade durante o desenvolvimento, incluindo larguras de 320 a 1440 px. Isso não representa uma certificação de acessibilidade nem cobertura completa de testes. Esta versão ainda não inclui uma suíte automatizada de regressão no repositório.
+O projeto foi verificado com `pnpm build` e `pnpm lint`, além de testes manuais dos fluxos de navegação, busca, favoritos, personalização, carrinho e checkout. A responsividade foi conferida em larguras entre 320 e 1440 px.
 
-## Limites e próximos passos
+## Escopo atual e possíveis evoluções
 
-Esta aplicação demonstra o **front-end de uma loja**. Não há backend, autenticação, pagamento, controle real de estoque, cálculo de frete ou envio de encomendas. Produtos e preços são definidos no código, e o número exibido na confirmação identifica apenas a simulação.
+Esta versão representa o **Front-End de uma loja virtual**. Pagamento, cálculo de frete, estoque, autenticação e persistência de pedidos permanecem demonstrativos porque dependem de serviços de backend que não fazem parte do escopo atual.
 
-Para uma operação real, os próximos passos seriam integrar uma API, validar preços e pedidos no servidor, persistir os pedidos em banco de dados e conectar pagamento e frete. Testes automatizados dos fluxos de personalização e checkout também ajudariam a proteger essas regras em futuras alterações.
+Como evolução, o projeto pode receber uma API, validação de preços e pedidos no servidor, banco de dados, integração com meios de pagamento e frete, além de testes automatizados dos fluxos de personalização e checkout.
+
+## Processo de desenvolvimento
+
+O projeto começou pela definição da experiência de compra e da identidade do Ateliê AnaCraft. A partir disso, organizei o catálogo, as regras de personalização, o comportamento do carrinho e o fluxo demonstrativo de checkout, validando cada etapa em diferentes tamanhos de tela.
+
+### Inteligência artificial como ferramenta de apoio
+
+Utilizei ferramentas de inteligência artificial de maneira complementar em pesquisas, revisão de alternativas, apoio visual e análise de trechos do código. A ideia do projeto, o direcionamento da interface, as regras de negócio, a implementação e a validação das funcionalidades foram conduzidos por mim. Todo conteúdo gerado como apoio foi selecionado, revisado e adaptado ao objetivo da aplicação.
 
 ## Deploy
 
